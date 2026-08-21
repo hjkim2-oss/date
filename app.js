@@ -138,31 +138,34 @@ const lintAnswer = v => /(하겠습니다|열심히|최선을|노력하겠|자�
   lv: "nudge",
   msg: "각오·다짐으로 흐릅니다 → “실제로 그렇게 했던 경험이 있을까요?”로 되돌리세요."
 }] : [];
+
+/* ---------- 구글 Apps Script 중계 서버 URL ----------
+   JD·캘린더 저장과 AI 행동지표 생성을 모두 이 URL로 중계한다.
+   재배포로 URL이 바뀌면 이 한 줄만 교체하면 된다.
+   Claude API 키는 Apps Script의 Script Property에만 있고 여기엔 노출되지 않는다. */
+const GS_URL = "https://script.google.com/macros/s/AKfycbyeabo9ID7XLqSHoe_2DG4CwzubwAyot08GBl_MNTtxuVtb3Z6cbtJ7PZZOSqaY9LNI/exec";
+
+// Claude 호출: Apps Script 중계를 거쳐 API 키를 숨긴 채 요청한다.
 async function askClaude(prompt, maxTokens = 1400) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch(GS_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "text/plain;charset=utf-8"
     },
+    // 단순 요청(프리플라이트 회피)
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: maxTokens,
-      messages: [{
-        role: "user",
-        content: prompt
-      }]
+      type: "ai",
+      prompt,
+      max_tokens: maxTokens
     })
   });
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
-  const text = data.content.filter(c => c.type === "text").map(c => c.text).join("").replace(/```json|```/g, "").trim();
+  if (data.error) throw new Error(data.error);
+  const text = (data.content || []).filter(c => c.type === "text").map(c => c.text).join("").replace(/```json|```/g, "").trim();
   return JSON.parse(text);
 }
 const uid = () => Math.random().toString(36).slice(2, 9);
-
-/* ---------- 구글 시트 공유 저장소 ----------
-   Apps Script 웹앱 URL. 재배포로 URL이 바뀌면 이 한 줄만 교체하면 됩니다. */
-const GS_URL = "https://script.google.com/macros/s/AKfycbyeabo9ID7XLqSHoe_2DG4CwzubwAyot08GBl_MNTtxuVtb3Z6cbtJ7PZZOSqaY9LNI/exec";
 
 // 시트에서 목록 읽기 (type: 'jd' | 'calendar')
 async function gsLoad(type) {

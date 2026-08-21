@@ -3,7 +3,7 @@
 // =========================================================
 
 // 1. [필수] 구글 앱스 스크립트 배포 URL을 입력하세요.
-const GAS_URL = "https://script.google.com/macros/s/발급받은_배포_ID/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwods7kF6cnftGvNJ8RZ-fiKOUHBGL5ctPurvVvUeKTykZYFnteTTLgCGguouFz6fkQ/exec";
 
 
 /**
